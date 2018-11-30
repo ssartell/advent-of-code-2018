@@ -1,0 +1,28 @@
+{
+  "name": "advent-of-code-2017",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ansi": "^0.3.1",
+    "functify": "^0.4.0",
+    "gl-vec2": "^1.0.0",
+    "js-combinatorics": "^0.5.2",
+    "md5": "^2.2.1",
+    "mnemonist": "^0.18.0",
+    "node-stopwatch": "0.0.1",
+    "ramda": "^0.25.0",
+    "vector": "0.0.4",
+    "vectors": "^0.1.0",
+    "wu": "^2.1.0"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "plop": "^1.9.0"
+  }
+}
