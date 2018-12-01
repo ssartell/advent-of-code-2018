@@ -8,14 +8,16 @@ var asRing = function* (arr) {
 
 var parseInput = R.pipe(R.trim, R.split(/, |\n/), R.map(parseInt));
 
-var solution = input => {
+var firstFrequencySeenTwice = input => {
     var freqs = new Set([0]);
     var acc = 0;
-    for(var x of asRing(parseInput(input))) {
+    for(var x of asRing(input)) {
         acc += x;
         if (freqs.has(acc)) return acc;
         freqs.add(acc);
     }
 }
+
+var solution = R.pipe(parseInput, firstFrequencySeenTwice);
 
 module.exports = solution;
