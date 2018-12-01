@@ -8,12 +8,14 @@ var asRing = function* (arr) {
 
 var parseInput = R.pipe(R.trim, R.split(/, |\n/), R.map(parseInt));
 
-var isNewFreq = (state, x) => !state.known.has(state.freq);
-var addKnownFreq = (state, x) => ({
-    known: state.known.add(state.freq),
-    freq: state.freq + x
-});
-
-var solution = x => R.pipe(parseInput, asRing, R.reduceWhile(isNewFreq, addKnownFreq, {freq: 0, known: new Set()}), R.prop("freq"))(x);
+var solution = input => {
+    var freqs = new Set([0]);
+    var acc = 0;
+    for(var x of asRing(parseInput(input))) {
+        acc += x;
+        if (freqs.has(acc)) return acc;
+        freqs.add(acc);
+    }
+}
 
 module.exports = solution;
