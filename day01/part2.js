@@ -1,6 +1,6 @@
 var R = require('ramda');
 
-var makeCycle = function* (arr) {
+var asRing = function* (arr) {
     while(true)
         for(var x of arr)
             yield x;
@@ -14,6 +14,6 @@ var addKnownFreq = (state, x) => ({
     freq: state.freq + x
 });
 
-var solution = R.pipe(parseInput, makeCycle, R.reduceWhile(isNewFreq, addKnownFreq, {freq: 0, known: new Set()}), R.prop("freq"));
+var solution = x => R.pipe(parseInput, asRing, R.reduceWhile(isNewFreq, addKnownFreq, {freq: 0, known: new Set()}), R.prop("freq"))(x);
 
 module.exports = solution;
