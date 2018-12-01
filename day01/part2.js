@@ -8,12 +8,12 @@ var makeCycle = function* (arr) {
 
 var parseInput = R.pipe(R.trim, R.split(/, |\n/), R.map(parseInt));
 
-var isUnknownFreq = (state, x) => !state.set.has(state.current);
+var isNewFreq = (state, x) => !state.known.has(state.freq);
 var addKnownFreq = (state, x) => ({
-    set: state.set.add(state.current),
-    current: state.current + x
+    known: state.known.add(state.freq),
+    freq: state.freq + x
 });
 
-var solution = R.pipe(parseInput, makeCycle, R.reduceWhile(isUnknownFreq, addKnownFreq, {current: 0, set: new Set()}), R.prop("current"));
+var solution = R.pipe(parseInput, makeCycle, R.reduceWhile(isNewFreq, addKnownFreq, {freq: 0, known: new Set()}), R.prop("freq"));
 
 module.exports = solution;
