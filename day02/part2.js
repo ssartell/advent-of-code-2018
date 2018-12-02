@@ -4,7 +4,7 @@ var C = require('js-combinatorics');
 
 var parseInput = R.pipe(R.trim, R.split('\r\n'));
 var levOf2 = arr => C.bigCombination(arr, 2).find(pair => R.apply(levenshtein.get, pair) === 1);
-var commonLetters = R.pipe(R.map(R.split('')), R.apply(R.zip), R.filter(R.apply(R.equals)), R.map(x => x[0]), R.join(''));
+var commonLetters = R.pipe(R.apply(R.zip), R.filter(R.apply(R.equals)), R.map(x => x[0]), R.join(''));
 
 var solution = R.pipe(parseInput, levOf2, commonLetters);
 
