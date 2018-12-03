@@ -1,5 +1,5 @@
 var run = require('./scaffolding');
 
-run(2, 2);
+run(3, 2);
 
 process.exit();
