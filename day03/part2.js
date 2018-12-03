@@ -11,8 +11,7 @@ var squareInches = function* (claim) {
             yield x * size + y;
 }
 var claimInch = (fabric, inch) => { 
-    var val = fabric[inch] || 0;
-    fabric[inch] = val + 1;
+    fabric[inch] = (fabric[inch] || 0) + 1;
     return fabric;
 };
 var applyClaim = (fabric, claim) => R.reduce(claimInch, fabric, squareInches(claim));
