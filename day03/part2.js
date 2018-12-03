@@ -17,14 +17,8 @@ var findNonOverlappingClaim = claims => {
             fabric[inch]++;
         }
     }
-
-    for(var claim of claims) {
-        var noOverlap = true;
-        for(var inch of squareInches(claim)) {
-            noOverlap &= fabric[inch] === 1;
-        }
-        if (noOverlap) return claim.id;
-    }
+    var noOverlaps = R.pipe(squareInches, R.reduce((noOverlap, inch) => noOverlap && fabric[inch] === 1, true));
+    return R.find(noOverlaps, claims).id;
 };
 
 var solution = R.pipe(parseInput, findNonOverlappingClaim);
