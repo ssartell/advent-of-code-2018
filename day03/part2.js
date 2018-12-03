@@ -19,11 +19,11 @@ var findNonOverlappingClaim = claims => {
     }
 
     for(var claim of claims) {
+        var noOverlap = true;
         for(var inch of squareInches(claim)) {
-            var noOverlap = true;
             noOverlap &= fabric[inch] === 1;
-            if (noOverlap) return claim.id;
         }
+        if (noOverlap) return claim.id;
     }
 };
 
