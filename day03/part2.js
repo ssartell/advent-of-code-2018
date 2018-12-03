@@ -13,12 +13,8 @@ var squareInches = function* (claim) {
 var claimInch = (fabric, inch) => { fabric[inch] = (fabric[inch] || 0) + 1; return fabric; };
 var applyClaim = (fabric, claim) => R.reduce(claimInch, fabric, squareInches(claim));
 var applyClaims = R.reduce(applyClaim, []);
-var findNonOverlappingClaim = claims => {
-    var fabric = applyClaims(claims);
-    var claimDoesntOverlap = R.pipe(squareInches, R.reduce((noOverlap, inch) => noOverlap && fabric[inch] === 1, true));
-    return R.find(claimDoesntOverlap, claims).id;
-};
-
-var solution = R.pipe(parseInput, findNonOverlappingClaim);
+var claimDoesntOverlap = R.curry((fabric, claim) => R.reduce((noOverlap, inch) => noOverlap && fabric[inch] === 1, true, squareInches(claim)));
+var findNonOverlappingClaim = (fabric, claims) => R.find(claimDoesntOverlap(fabric), claims).id;
+var solution = R.pipe(parseInput, R.converge(findNonOverlappingClaim, [applyClaims, R.identity]));
 
 module.exports = solution;
