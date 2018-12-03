@@ -17,11 +17,10 @@ var claimInch = (fabric, inch) => {
 };
 var applyClaim = (fabric, claim) => R.reduce(claimInch, fabric, squareInches(claim));
 var applyClaims = R.reduce(applyClaim, []);
-
 var findNonOverlappingClaim = claims => {
     var fabric = applyClaims(claims);
-    var noOverlaps = R.pipe(squareInches, R.reduce((noOverlap, inch) => noOverlap && fabric[inch] === 1, true));
-    return R.find(noOverlaps, claims).id;
+    var claimDoesntOverlap = R.pipe(squareInches, R.reduce((noOverlap, inch) => noOverlap && fabric[inch] === 1, true));
+    return R.find(claimDoesntOverlap, claims).id;
 };
 
 var solution = R.pipe(parseInput, findNonOverlappingClaim);
