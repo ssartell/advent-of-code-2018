@@ -10,15 +10,13 @@ var squareInches = function* (claim) {
         for(var y = claim.y; y < claim.y + claim.h; y++)
             yield x * size + y;
 }
-var applyClaims = claims => {
-    var fabric = R.repeat(0, size * size);
-    for(var claim of claims) {
-        for(var inch of squareInches(claim)) {
-            fabric[inch]++;
-        }
-    }
+var claimInch = (fabric, inch) => { 
+    var val = fabric[inch] || 0;
+    fabric[inch] = val + 1;
     return fabric;
 };
+var applyClaim = (fabric, claim) => R.reduce(claimInch, fabric, squareInches(claim));
+var applyClaims = R.reduce(applyClaim, []);
 var totalOverlaps = R.pipe(R.map(x => +(x > 1)), R.sum);
 
 var solution = R.pipe(parseInput, applyClaims, totalOverlaps);

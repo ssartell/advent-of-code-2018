@@ -10,13 +10,16 @@ var squareInches = function* (claim) {
         for(var y = claim.y; y < claim.y + claim.h; y++)
             yield x * size + y;
 }
+var claimInch = (fabric, inch) => { 
+    var val = fabric[inch] || 0;
+    fabric[inch] = val + 1;
+    return fabric;
+};
+var applyClaim = (fabric, claim) => R.reduce(claimInch, fabric, squareInches(claim));
+var applyClaims = R.reduce(applyClaim, []);
+
 var findNonOverlappingClaim = claims => {
-    var fabric = R.repeat(0, size * size);
-    for(var claim of claims) {
-        for(var inch of squareInches(claim)) {
-            fabric[inch]++;
-        }
-    }
+    var fabric = applyClaims(claims);
     var noOverlaps = R.pipe(squareInches, R.reduce((noOverlap, inch) => noOverlap && fabric[inch] === 1, true));
     return R.find(noOverlaps, claims).id;
 };
