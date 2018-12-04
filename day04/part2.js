@@ -5,7 +5,7 @@ var parseLine = R.pipe(R.match(lineRegex), R.tail, R.zipObj(['datetime', 'min', 
 var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
 
 var id;
-var fixIds = R.map(R.tap(x => { x.id = id = x.id || id; }));
+var fixIds = R.forEach(x => { x.id = id = x.id || id; });
 var filterBeginShifts = R.filter(x => x.action !== 'begins shift');
 var expandPair = pair => R.map(x => ({ min: x, id: pair[0].id }), R.range(parseInt(pair[0].min), parseInt(pair[1].min)));
 var expandMinutes = R.pipe(R.splitEvery(2), R.map(expandPair), R.flatten);
