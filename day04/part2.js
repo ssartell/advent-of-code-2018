@@ -1,5 +1,4 @@
 var R = require('ramda');
-var debug = x => { debugger; return x; };
 
 var lineRegex = /\[(\d+-\d+-\d+ \d+:(\d+))\](?: Guard #(\d+))? ((?:falls asleep)|(?:wakes up)|(?:begins shift))/;
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.zipObj(['datetime', 'min', 'id', 'action']))
