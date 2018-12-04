@@ -5,24 +5,10 @@ var lineRegex = /\[(\d+-\d+-\d+ \d+:(\d+))\](?: Guard #(\d+))? ((?:falls asleep)
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.zipObj(['datetime', 'min', 'id', 'action']))
 var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
 
-var fixIds = records => {
-    var id;
-    for(var record of records) {
-        if (record.id) {
-            id = record.id;
-        } else {
-            record.id = id;
-        }
-    }
-    return records;
-};
-
+var id;
+var fixIds = R.map(R.tap(x => { x.id = id = x.id || id; }));
 var filterBeginShifts = R.filter(x => x.action !== 'begins shift');
-
-var expandPair = pair => {
-    var range = R.range(parseInt(pair[0].min), parseInt(pair[1].min));
-    return R.map(x => ({ min: x, id: pair[0].id }), range);
-}
+var expandPair = pair => R.map(x => ({ min: x, id: pair[0].id }), R.range(parseInt(pair[0].min), parseInt(pair[1].min)));
 var expandMinutes = R.pipe(R.splitEvery(2), R.map(expandPair), R.flatten);
 var groupProp = prop => R.pipe(R.sortBy(R.prop(prop)), R.groupWith((a, b) => R.prop(prop, a) === R.prop(prop, b)));
 var maxArrayLength = R.reduce((acc, x) => acc.length > x.length ? acc : x, []);
