@@ -3,7 +3,9 @@ var Stack = require('mnemonist/stack');
 
 var parseInput = R.pipe(R.trim, R.split(''));
 
-var shouldReact = (stack, unit) => unit !== stack.peek() && unit.toUpperCase() === (stack.peek() || "").toUpperCase();
+var sameLetter = R.curry((a, b) => a.toUpperCase() === b.toUpperCase());
+var differentCase = R.curry((a, b) => a !== b && sameLetter(a, b));
+var shouldReact = (stack, unit) => differentCase(unit, stack.peek() || '');
 var react = (stack, unit) => { stack.pop(); return stack; };
 var dontReact = (stack, unit) => { stack.push(unit); return stack; };
 var attemptReaction = R.ifElse(shouldReact, react, dontReact);

@@ -3,13 +3,14 @@ var Stack = require('mnemonist/stack');
 
 var parseInput = R.pipe(R.trim, R.split(''));
 
-var shouldReact = (stack, unit) => unit !== stack.peek() && unit.toUpperCase() === (stack.peek() || "").toUpperCase();
+var sameLetter = R.curry((a, b) => a.toUpperCase() === b.toUpperCase());
+var differentCase = R.curry((a, b) => a !== b && sameLetter(a, b));
+var shouldReact = (stack, unit) => differentCase(unit, stack.peek() || '');
 var react = (stack, unit) => { stack.pop(); return stack; };
 var dontReact = (stack, unit) => { stack.push(unit); return stack; };
-var isSkipped = R.curry((skip, stack, unit) => skip === unit.toLowerCase());
-var attemptReaction = skip => R.ifElse(isSkipped(skip), R.identity, R.ifElse(shouldReact, react, dontReact));
-var reactPolymer = skip => R.reduce(attemptReaction(skip), new Stack());
-var shortestPolymer = polymer => R.reduce((min, letter) => R.min(min, reactPolymer(letter)(polymer).size), Infinity, 'abcdefghijklmnopqrstuvwxyz');
+var attemptReaction = R.ifElse(shouldReact, react, dontReact);
+var reactPolymer = R.reduce(attemptReaction);
+var shortestPolymer = polymer => R.reduce((min, letter) => R.min(min, reactPolymer(new Stack(), R.reject(sameLetter(letter), polymer)).size), Infinity, 'abcdefghijklmnopqrstuvwxyz');
 
 var solution = R.pipe(parseInput, shortestPolymer);
 
