@@ -9,7 +9,7 @@ var shouldReact = (stack, unit) => differentCase(unit, stack.peek() || '');
 var react = (stack, unit) => { stack.pop(); return stack; };
 var dontReact = (stack, unit) => { stack.push(unit); return stack; };
 var attemptReaction = R.ifElse(shouldReact, react, dontReact);
-var reactPolymer = R.reduce(attemptReaction, new Stack());
+var reactPolymer = polymer => R.reduce(attemptReaction, new Stack(), polymer);
 
 var solution = R.pipe(parseInput, reactPolymer, R.prop('size'));
 

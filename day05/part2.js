@@ -9,8 +9,8 @@ var shouldReact = (stack, unit) => differentCase(unit, stack.peek() || '');
 var react = (stack, unit) => { stack.pop(); return stack; };
 var dontReact = (stack, unit) => { stack.push(unit); return stack; };
 var attemptReaction = R.ifElse(shouldReact, react, dontReact);
-var reactPolymer = R.reduce(attemptReaction);
-var shortestPolymer = polymer => R.reduce((min, letter) => R.min(min, reactPolymer(new Stack(), R.reject(sameLetter(letter), polymer)).size), Infinity, 'abcdefghijklmnopqrstuvwxyz');
+var reactPolymer = polymer => R.reduce(attemptReaction, new Stack(), polymer);
+var shortestPolymer = polymer => R.reduce((min, letter) => R.min(min, reactPolymer(R.reject(sameLetter(letter), polymer)).size), Infinity, 'abcdefghijklmnopqrstuvwxyz');
 
 var solution = R.pipe(parseInput, shortestPolymer);
 
