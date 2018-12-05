@@ -4,21 +4,13 @@ var alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
 var parseInput = R.pipe(R.trim, R.split(''));
 
-var shouldReact = (a, b) => a !== b && a.toUpperCase() === b.toUpperCase();
-var react = (polymer, skip) => {
-    var stack = new Stack();
-    for(var unit of polymer) {
-        if (unit.toLowerCase() === skip) continue;
-        var top = stack.peek() || "";
-        if (shouldReact(unit, top)) {
-            stack.pop();
-        } else {
-            stack.push(unit);
-        }
-    }
-    return stack.size;
-}
-var shortestPolymer = polymer => R.reduce((min, letter) => R.min(min, react(polymer, letter)), Infinity, alphabet);
+var shouldReact = (stack, unit) => unit !== stack.peek() && unit.toUpperCase() === (stack.peek() || "").toUpperCase();
+var react = (stack, unit) => { stack.pop(); return stack; };
+var dontReact = (stack, unit) => { stack.push(unit); return stack; };
+var isSkipped = R.curry((skip, stack, unit) => skip === unit.toLowerCase());
+var attemptReaction = skip => R.ifElse(isSkipped(skip), R.identity, R.ifElse(shouldReact, react, dontReact));
+var reactPolymer = skip => R.reduce(attemptReaction(skip), new Stack());
+var shortestPolymer = polymer => R.reduce((min, letter) => R.min(min, reactPolymer(letter)(polymer).size), Infinity, alphabet);
 
 var solution = R.pipe(parseInput, shortestPolymer);
 
