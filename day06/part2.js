@@ -10,10 +10,7 @@ var max = R.reduce(R.max, -Infinity);
 var asLocations = function* (coords) {
     var xs = R.map(R.prop('x'), coords);
     var ys = R.map(R.prop('y'), coords);
-    var minX = min(xs);
-    var maxX = max(xs);
-    var minY = min(ys);
-    var maxY = max(ys);
+    var [minX, maxX, minY, maxY] = [min(xs), max(xs), min(ys), max(ys)];
     for(var x = minX; x <= maxX; x++)
         for (var y = minY; y <= maxY; y++)
             yield {x, y};   

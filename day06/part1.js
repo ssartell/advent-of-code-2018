@@ -10,16 +10,10 @@ var max = R.reduce(R.max, -Infinity);
 var asLocations = function* (coords) {
     var xs = R.map(R.prop('x'), coords);
     var ys = R.map(R.prop('y'), coords);
-    var minX = min(xs);
-    var maxX = max(xs);
-    var minY = min(ys);
-    var maxY = max(ys);
-    for(var x = minX; x <= maxX; x++) {
-        for (var y = minY; y <= maxY; y++) {
-            var isEdge = x === minX || x === maxX || y === minY || y === maxY;
-            yield {x, y, isEdge};
-        }
-    }       
+    var [minX, maxX, minY, maxY] = [min(xs), max(xs), min(ys), max(ys)];
+    for(var x = minX; x <= maxX; x++)
+        for (var y = minY; y <= maxY; y++) 
+            yield {x, y, isEdge: x === minX || x === maxX || y === minY || y === maxY};
 };
 
 var manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
@@ -38,7 +32,7 @@ var withClosestCounts = coords => {
     }
     return coords;
 };
-var biggestArea = R.pipe(R.map(x => x.count), R.filter(x => x !== Infinity), max);
+var biggestArea = R.pipe(R.map(R.prop('count')), R.filter(x => x < Infinity), max);
 
 var solution = R.pipe(parseInput, withClosestCounts, biggestArea);
 
