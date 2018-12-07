@@ -8,7 +8,6 @@ var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
 
 var min = R.reduce(R.min, Infinity);
 var max = R.reduce(R.max, -Infinity);
-var manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 var inBounds = R.curry((minX, maxX, minY, maxY, loc) => minX <= loc.x && loc.x <= maxX && minY <= loc.y && loc.y <= maxY);
 var onBounds = R.curry((minX, maxX, minY, maxY, loc) => loc.x === minX || loc.x === maxX || loc.y === minY || loc.y === maxY);
 var biggestArea = R.pipe(R.map(R.prop('count')), R.filter(x => x < Infinity), max);
