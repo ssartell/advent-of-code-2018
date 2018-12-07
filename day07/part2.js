@@ -14,7 +14,13 @@ var addToMap = (map, a, b) => {
         map.set(a, new Set([b]));
     }
 };
-var create = R.curry((t, step) => ({ step, t: t + timeForStep(step) }));
+var createWork = (t0, ts, step) => {
+    var minT = R.reduce(R.min, Infinity, ts);
+    var i = R.findIndex(R.equals(minT), ts);
+    var t1 = R.max(minT, t0) + timeForStep(step);
+    ts[i] = t1;
+    return { step, t: t1 };
+};
 
 var solve = instructions => {
     var left = new Set();
@@ -28,14 +34,16 @@ var solve = instructions => {
         addToMap(leftToRight, inst.l, inst.r);
         addToMap(rightToLeft, inst.r, inst.l);
     }
+    
     var t = 0;
-    var workToDo = new Heap(R.comparator((a, b) => a.t < b.t || (a.t === b.t && a.step < b.step)));
-    R.forEach(x => workToDo.push(create(t, x)), helpers.difference(left, right));
+    var ts = R.repeat(0, 5);
+    var workBeingDone = new Heap(R.comparator((a, b) => a.t < b.t || (a.t === b.t && a.step < b.step)));
+    R.forEach(x => workBeingDone.push(createWork(0, ts, x)), helpers.difference(left, right));
 
-    while(workToDo.peek()) {
-        var work = workToDo.pop();
-        if (t < work.t) t = work.t;
-        var step = work.step;
+    while(workBeingDone.peek()) {
+        var doneWork = workBeingDone.pop();
+        t = doneWork.t;
+        var step = doneWork.step;
         var rights = leftToRight.get(step);
         leftToRight.delete(step);
 
@@ -44,7 +52,7 @@ var solve = instructions => {
             var lefts = rightToLeft.get(right);
             lefts.delete(step);
             if (lefts.size === 0) {
-                workToDo.push(create(t, right));
+                workBeingDone.push(createWork(t, ts, right));
             }
         }
     }

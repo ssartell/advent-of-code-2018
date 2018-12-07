@@ -1,7 +1,6 @@
 var R = require('ramda');
 var helpers = require('mnemonist/set');
 var Heap = require('mnemonist/heap');
-var debug = x => { debugger; return x;}
 
 var lineRegex = /Step (.) must be finished before step (.) can begin./;
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.zipObj(['l', 'r']));
@@ -28,10 +27,10 @@ var solve = instructions => {
         addToMap(rightToLeft, inst.r, inst.l);
     }
     
-    var workToDo = Heap.from(helpers.difference(left, right), R.comparator((a, b) => a < b));
+    var workBeingDone = Heap.from(helpers.difference(left, right), R.comparator((a, b) => a < b));
     var steps = '';
-    while(workToDo.peek()) {
-        var step = workToDo.pop();
+    while(workBeingDone.peek()) {
+        var step = workBeingDone.pop();
         steps += step;
         var rights = leftToRight.get(step);
         leftToRight.delete(step);
@@ -41,7 +40,7 @@ var solve = instructions => {
             var lefts = rightToLeft.get(right);
             lefts.delete(step);
             if (lefts.size === 0) {
-                workToDo.push(right);
+                workBeingDone.push(right);
             }
         }
     }
