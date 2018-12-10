@@ -1,7 +1,6 @@
 var R = require('ramda');
 var ansi = require('ansi');
 var cursor = ansi(process.stdout);
-var debug = x => { debugger; return x; };
 
 var lineRegex = /position=<\s*(-?\d+),\s*(-?\d+)> velocity=<\s*(-?\d+),\s*(-?\d+)>/;
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.map(parseInt), R.zipObj(['x', 'y', 'vx', 'vy']));
@@ -19,16 +18,17 @@ var withinRange = lights => {
     return max(ys) - min(ys) > 9;
 }
 
-var loop = lights => {
+var simulateLights = lights => {
     while (withinRange(lights)) {
         for(var light of lights) {
             updateLight(light);
         }
     }
+    return lights;
+}
 
-    for(var y = 0; y < 10; y++) {
-        cursor.goto(0, y).write(R.repeat(' ', 200).join(''));
-    }
+var draw = lights => {
+    process.stdout.write('\u001B[2J\u001B[0;0f');
 
     var ys = R.map(R.prop('y'), lights);
     var xs = R.map(R.prop('x'), lights);
@@ -38,9 +38,9 @@ var loop = lights => {
         cursor.goto(light.x - minX, light.y - minY).write('#');
     }
 
-    cursor.goto(0, 15);
-}
+    cursor.goto(0, 10);
+};
 
-var solution = R.pipe(parseInput, loop);
+var solution = R.pipe(parseInput, simulateLights, draw);
 
 module.exports = solution;

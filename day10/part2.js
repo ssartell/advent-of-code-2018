@@ -16,7 +16,7 @@ var conditional = lights => {
     return max(ys) - min(ys) > 9;
 }
 
-var loop = lights => {
+var simulateLights = lights => {
     var t = 0;
     while (conditional(lights)) {
         t++;
@@ -27,6 +27,6 @@ var loop = lights => {
     return t;
 }
 
-var solution = R.pipe(parseInput, loop);
+var solution = R.pipe(parseInput, simulateLights);
 
 module.exports = solution;
