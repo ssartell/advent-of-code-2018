@@ -1,6 +1,5 @@
 var R = require('ramda');
 var Stack = require('mnemonist/stack');
-var debug = x => { debugger; return x; }
 
 class Node {
     constructor() {
