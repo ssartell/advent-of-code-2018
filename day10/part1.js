@@ -28,7 +28,6 @@ var simulateLights = lights => {
 }
 
 var draw = lights => {
-    // cls
     process.stdout.write('\u001B[2J\u001B[0;0f');
 
     var ys = R.map(R.prop('y'), lights);
