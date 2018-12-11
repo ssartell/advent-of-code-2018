@@ -1,33 +1,53 @@
 var R = require('ramda');
 var debug = x => { debugger; return x; };
 var gridSize = 300;
-var squareSize = 3;
 
 var parseInput = R.pipe(R.trim, parseInt);
 
-var powerLevel = R.memoize((serial, x, y) => {
-    var rackId = x + 10;
-    var powerLevel = rackId * y;
-    powerLevel += serial;
-    powerLevel *= rackId;
-    powerLevel = Math.floor((powerLevel / 100) % 10);
-    powerLevel -= 5;
-    return powerLevel;
-});
+var getHalf = R.memoize(x => Math.floor(x / 2));
 
-var powerLevelOfSquare = R.memoize((serial, squareSize, x, y) => {
+var memory = new Map();
+var customMemoize = function(f) {
+    return function() {
+        var key = `${arguments[1]},${arguments[2]},${arguments[3]}`;
+        
+        var value = memory.get(key);
+        if (value === undefined) {
+            value = f.apply(null, arguments);
+            memory.set(key, value);
+        }
+        return value;
+    }
+};
+
+var powerLevelOfSquare = customMemoize((serial, squareSize, x, y) => {
     if (squareSize === 1) {
-        return powerLevel(serial, x, y);
+        var rackId = x + 10;
+        var powerLevel = rackId * y;
+        powerLevel += serial;
+        powerLevel *= rackId;
+        powerLevel = Math.floor((powerLevel / 100) % 10);
+        powerLevel -= 5;
+        return powerLevel;
     } else {
         var totalPowerLevel = 0;
-        totalPowerLevel += powerLevelOfSquare(serial, squareSize - 1, x + 1, y + 1);
+        var half = getHalf(squareSize);
+        var xPlusHalf = x + half;
+        var yPlusHalf = y + half;
 
-        for (var i = 0; i < squareSize; i++) {
-            totalPowerLevel += powerLevel(serial, x + i, y);
-        }
+        if (half + half === squareSize) {
+            totalPowerLevel += powerLevelOfSquare(serial, half, x, y);
+            totalPowerLevel += powerLevelOfSquare(serial, half, xPlusHalf, y);
+            totalPowerLevel += powerLevelOfSquare(serial, half, x, yPlusHalf);
+            totalPowerLevel += powerLevelOfSquare(serial, half, xPlusHalf, yPlusHalf);
+        } else {
+            var largerHalf = squareSize - half;
 
-        for (var j = 1; j < squareSize; j++) {
-            totalPowerLevel += powerLevel(serial, x, y + j);
+            totalPowerLevel += powerLevelOfSquare(serial, largerHalf, x, y);
+            totalPowerLevel += powerLevelOfSquare(serial, half, x + largerHalf, y);
+            totalPowerLevel += powerLevelOfSquare(serial, half, x, y + largerHalf);
+            totalPowerLevel += powerLevelOfSquare(serial, largerHalf, xPlusHalf, yPlusHalf);
+            totalPowerLevel -= powerLevelOfSquare(serial, 1, xPlusHalf, yPlusHalf);
         }
 
         return totalPowerLevel;
@@ -38,8 +58,6 @@ var solve = serial => {
     var max = -Infinity;
     var coords;
     for(var squareSize = 1; squareSize <= 300; squareSize++) {
-        console.log(squareSize);
-        console.log(coords);
         for(var x = 1; x + squareSize <= gridSize; x++) {
             for(var y = 1; y + squareSize <= gridSize; y++) {
                 var totalPowerLevel = powerLevelOfSquare(serial, squareSize, x, y);
