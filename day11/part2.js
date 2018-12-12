@@ -61,6 +61,8 @@ var solve = serial => {
                 }
             }
         }
+        console.log(squareSize);
+        console.log(coords);
     }
 
     return coords;
