@@ -1,5 +1,4 @@
 var R = require('ramda');
-var debug = x => { debugger; return x; };
 
 var parseInput = R.pipe(R.split('\n'), R.map(R.split('')));
 
