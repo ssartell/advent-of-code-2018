@@ -40,46 +40,41 @@ var stillAlive = unit => unit.hp > 0;
 var thatAreEnemies = R.curry((type, units) => R.filter(areEnemies(type))(units));
 var thatAreAlive = R.filter(stillAlive);
 var anyEnemiesAlive = (type, units) => R.pipe(thatAreEnemies(type), thatAreAlive, R.isEmpty, R.not)(units);
+var clearSpace = (map, unit) => map[unit.y][unit.x] = {type: '.', x: unit.x, y: unit.y};
 var neightbors = (map, unit) => R.map(dir => map[unit.y + dir.y][unit.x + dir.x], readingOrder(dirs));
 var adjacentSpaces = (map, unit) => R.filter(isSpace, neightbors(map, unit));
 var keyOfSpace = space => `${space.x},${space.y}`;
 
 var shorestPathToReachable = (map, unit) => {
-    var queue = Queue.from(adjacentSpaces(map, unit));
+    var queue = Queue.from(adjacentSpaces(map, unit).map(R.of));
     var seen = new Set();
-
-    var allPaths = [];
-    var dist = Infinity;
+    var foundPaths = [];
     while(queue.peek()) {
         var path = queue.dequeue();
-        var currentSpace = R.last(path);
-        if (path.length > dist) 
-            break;
-
-        if (anyEnemiesAlive(unit.type, neightbors(map, currentSpace))) {
-            allPaths.push({path, x: currentSpace.x, y: currentSpace.y});
-            dist = path.length;
+        if (foundPaths.length > 0 && path.length > foundPaths[0].path.length) break;
+        
+        var lastSpace = R.last(path);
+        var key = keyOfSpace(lastSpace);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        
+        if (anyEnemiesAlive(unit.type, neightbors(map, lastSpace))) {
+            foundPaths.push({path, x: lastSpace.x, y: lastSpace.y});
         } else {
-            for(var space of adjacentSpaces(map, currentSpace)) {
-                var key = keyOfSpace(space);
-                if (!seen.has(key)) {
-                    var newPath = Array.from(path);
-                    newPath.push(space);
-                    queue.enqueue(newPath);
-                    seen.add(keyOfSpace(space));
-                }            
+            for(var space of adjacentSpaces(map, lastSpace)) {
+                queue.enqueue(Array.from(path).concat([space]));        
             }
         }        
     }
 
-    return R.isEmpty(allPaths) ? [] : R.pipe(readingOrder, R.head, R.prop('path'))(allPaths);
+    return R.isEmpty(foundPaths) ? [] : R.pipe(readingOrder, R.head, R.prop('path'))(foundPaths);
 };
 
 var shouldMove = (map, units, unit) => anyEnemiesAlive(unit.type, units) && !anyEnemiesAlive(unit.type, neightbors(map, unit));
 var move = (map, unit) => {
     var spaceToMoveTo = R.head(shorestPathToReachable(map, unit));
     if (!spaceToMoveTo) return;
-    map[unit.y][unit.x] = {type: '.', x: unit.x, y: unit.y};
+    clearSpace(map, unit);
     unit.x = spaceToMoveTo.x;
     unit.y = spaceToMoveTo.y;
     map[unit.y][unit.x] = unit;
@@ -89,10 +84,7 @@ var canAttack = (map, units, unit) => anyEnemiesAlive(unit.type, units) && anyEn
 var attack = (map, unit) => {
     var enemy = R.pipe(thatAreEnemies(unit.type), thatAreAlive, R.sortBy(R.prop('hp')), R.head)(neightbors(map, unit));
     enemy.hp -= unit.ap;
-    
-    if (enemy.hp <= 0) {
-        map[enemy.y][enemy.x] = {type: '.', x: enemy.x, y: enemy.y}
-    }
+    if (!stillAlive(enemy)) clearSpace(map, enemy);
 };
 
 var print = (map, i, hp) => {
