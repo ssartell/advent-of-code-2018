@@ -62,26 +62,36 @@ var shorestPathToReachable = (map, unit) => {
         seen.add(keyOfSpace(space));
     }
 
+    var allPaths = [];
+    var dist = Infinity;
     while(queue.peek()) {
         var path = queue.dequeue();
         var currentSpace = R.last(path);
+        if (path.length > dist) 
+            break;
 
         if (anyEnemiesAlive(unit.type, neightbors(map, currentSpace))) {
-            return path;
-        }
-
-        for(var space of adjacentSpace(map, currentSpace)) {
-            var key = keyOfSpace(space);
-            if (!seen.has(key)) {
-                var newPath = Array.from(path);
-                newPath.push(space);
-                queue.enqueue(newPath);
-                seen.add(keyOfSpace(space));
-            }            
-        }
+            allPaths.push({path, x: currentSpace.x, y: currentSpace.y});
+            dist = path.length;
+        } else {
+            for(var space of adjacentSpace(map, currentSpace)) {
+                var key = keyOfSpace(space);
+                if (!seen.has(key)) {
+                    var newPath = Array.from(path);
+                    newPath.push(space);
+                    queue.enqueue(newPath);
+                    seen.add(keyOfSpace(space));
+                }            
+            }
+        }        
     }
 
-    return [];
+    //return [];
+    if (R.isEmpty(allPaths)) {
+        return [];
+    } else {
+        return R.pipe(readingOrder, R.head, R.prop('path'))(allPaths);
+    }
 };
 
 var move = (map, unit) => {
@@ -107,9 +117,7 @@ var attack = (map, unit) => {
     }
 };
 
-var cls = () => process.stdout.write('\u001B[2J\u001B[0;0f');
 var print = (map, i, hp) => {
-    cls();
     console.log('\n');
     console.log(`${i} * ${hp} = ${i * hp}`);
     for(var y = 0; y < map.length; y++) {
@@ -145,7 +153,7 @@ var run = init => {
         if (fight) {
             i++;
         }
-        print(map, i, hpOfRemaningUnits(units));
+        //print(map, i, hpOfRemaningUnits(units));
     } while (fight && anyEnemiesAlive('G', units) && anyEnemiesAlive('E', units))
 
     return i * hpOfRemaningUnits(units);
