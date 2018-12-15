@@ -1,8 +1,5 @@
 var R = require('ramda');
 var Queue = require('mnemonist/queue');
-var ansi = require('ansi');
-var cursor = ansi(process.stdout);
-var debug = x => { debugger; return x; };
 var ap = 3;
 var hp = 200;
 var dirs = [{x: 0, y: -1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}];
@@ -34,30 +31,19 @@ var isWall = x => x.type === '#';
 var isElf = x => x.type === 'E';
 var isGoblin = x => x.type === 'G';
 var isUnit = x => isElf(x) || isGoblin(x);
-var areSameTeam = R.curry((type, unit) => isUnit(unit) && unit.type === type);
 var areEnemies = R.curry((type, unit) => isUnit(unit) && unit.type !== type);
 var stillAlive = unit => unit.hp > 0;
-
-var neightbors = function (map, unit) {
-    var spaces = [];
-    for(var dir of readingOrder(dirs)) {
-        spaces.push(map[unit.y + dir.y][unit.x + dir.x]);
-    }
-    return spaces;
-};
-
 var thatAreEnemies = R.curry((type, units) => R.filter(areEnemies(type))(units));
 var thatAreAlive = R.filter(stillAlive);
 var anyEnemiesAlive = (type, units) => R.pipe(thatAreEnemies(type), thatAreAlive, R.isEmpty, R.not)(units);
-var adjacentSpace = (map, unit) => R.filter(x => x.type === '.', neightbors(map, unit));
-
-var shouldMove = (map, units, unit) => anyEnemiesAlive(unit.type, units) && !anyEnemiesAlive(unit.type, neightbors(map, unit));
+var neightbors = (map, unit) => R.map(dir => map[unit.y + dir.y][unit.x + dir.x], readingOrder(dirs));
+var adjacentSpaces = (map, unit) => R.filter(isSpace, neightbors(map, unit));
 
 var keyOfSpace = space => `${space.x},${space.y}`;
 var shorestPathToReachable = (map, unit) => {
     var queue = new Queue();
     var seen = new Set();
-    for(var space of adjacentSpace(map, unit)) {
+    for(var space of adjacentSpaces(map, unit)) {
         queue.enqueue([space]);
         seen.add(keyOfSpace(space));
     }
@@ -66,50 +52,40 @@ var shorestPathToReachable = (map, unit) => {
     var dist = Infinity;
     while(queue.peek()) {
         var path = queue.dequeue();
-        var currentSpace = R.last(path);
-        if (path.length > dist) 
-            break;
+        if (path.length > dist) break;
 
+        var currentSpace = R.last(path);
         if (anyEnemiesAlive(unit.type, neightbors(map, currentSpace))) {
             allPaths.push({path, x: currentSpace.x, y: currentSpace.y});
             dist = path.length;
         } else {
-            for(var space of adjacentSpace(map, currentSpace)) {
+            for(var space of adjacentSpaces(map, currentSpace)) {
                 var key = keyOfSpace(space);
-                if (!seen.has(key)) {
-                    var newPath = Array.from(path);
-                    newPath.push(space);
-                    queue.enqueue(newPath);
-                    seen.add(keyOfSpace(space));
-                }            
+                if (seen.has(key)) continue;
+                var newPath = Array.from(path);
+                newPath.push(space);
+                queue.enqueue(newPath);
+                seen.add(keyOfSpace(space));        
             }
         }        
     }
 
-    //return [];
-    if (R.isEmpty(allPaths)) {
-        return [];
-    } else {
-        return R.pipe(readingOrder, R.head, R.prop('path'))(allPaths);
-    }
+    return R.isEmpty(allPaths) ? [] : R.pipe(readingOrder, R.head, R.prop('path'))(allPaths);
 };
 
+var shouldMove = (map, units, unit) => anyEnemiesAlive(unit.type, units) && !anyEnemiesAlive(unit.type, neightbors(map, unit));
 var move = (map, unit) => {
-    var spaceToMoveTo = R.head(shorestPathToReachable(map, unit));
-    if (!spaceToMoveTo) return;
+    var nextStep = R.head(shorestPathToReachable(map, unit));
+    if (!nextStep) return;
     map[unit.y][unit.x] = {type: '.', x: unit.x, y: unit.y};
-    unit.x = spaceToMoveTo.x;
-    unit.y = spaceToMoveTo.y;
+    unit.x = nextStep.x;
+    unit.y = nextStep.y;
     map[unit.y][unit.x] = unit;
 };
 
-var canAttack = (map, units, unit) => {
-    return anyEnemiesAlive(unit.type, units) && anyEnemiesAlive(unit.type, neightbors(map, unit))
-};
-
-var sortByHp = R.sortBy(R.prop('hp'));
+var canAttack = (map, units, unit) => anyEnemiesAlive(unit.type, units) && anyEnemiesAlive(unit.type, neightbors(map, unit));
 var attack = (map, unit) => {
-    var enemy = R.pipe(thatAreEnemies(unit.type), thatAreAlive, sortByHp, R.head)(neightbors(map, unit));
+    var enemy = R.pipe(thatAreEnemies(unit.type), thatAreAlive, R.sortBy(R.prop('hp')), R.head)(neightbors(map, unit));
     enemy.hp -= unit.ap;
     
     if (enemy.hp <= 0) {
