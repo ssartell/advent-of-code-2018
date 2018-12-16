@@ -69,7 +69,6 @@ var behavesLikeOpCode = R.curry((sample, op) => {
 });
 
 var allOpsForSample = (sample, opsArray) => R.map(behavesLikeOpCode(sample), opsArray);
-// var behavesLikeOneOpCode = R.pipe(allOpsForSample, sumBooleans, x => x === 1);
 
 var runProgram = (program, codes) => {
     var regs = [0, 0, 0, 0];
