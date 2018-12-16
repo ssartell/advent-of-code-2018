@@ -1,10 +1,13 @@
 var R = require('ramda');
 var Queue = require('mnemonist/queue');
-var debug = x => { debugger; return x; };
-var hp = 200;
 var dirs = [{x: 0, y: -1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}];
 
 var parseInput = R.pipe(R.trim, R.split('\n'), R.map(R.pipe(R.trim, R.split(''))));
+
+var isSpace = x => x.type === '.';
+var isWall = x => x.type === '#';
+var isElf = x => x.type === 'E';
+var isGoblin = x => x.type === 'G';
 
 var toState = (input, elfAp) => {
     var map = R.repeat(0, input.length).map(x => R.repeat(0, input[0].length));
@@ -12,28 +15,18 @@ var toState = (input, elfAp) => {
 
     for(var y = 0; y < input.length; y++) {
         for(var x = 0; x < input[0].length; x++) {
-            var type = input[y][x];
-            if (type === '#' || type === '.') {
-                map[y][x] = {type, x, y};
-            } else if (type === 'E') {
-                var unit = {type, x, y, hp, ap: elfAp};
+            var unit = {type: input[y][x], x, y};
+            if (isElf(unit) || isGoblin(unit)) {
+                var unit = {...unit, hp: 200, ap: isElf(unit) ? elfAp : 3};
                 units.push(unit);
-                map[y][x] = unit;
-            } else if (type === 'G') {
-                var unit = {type, x, y, hp, ap: 3};
-                units.push(unit);
-                map[y][x] = unit;
             }
+            map[y][x] = unit;
         }
     }
     return {map, units};
 };
 
 var readingOrder = R.sortWith([R.ascend(R.prop('y')), R.ascend(R.prop('x'))]);
-var isSpace = x => x.type === '.';
-var isWall = x => x.type === '#';
-var isElf = x => x.type === 'E';
-var isGoblin = x => x.type === 'G';
 var isUnit = x => isElf(x) || isGoblin(x);
 var areEnemies = R.curry((type, unit) => isUnit(unit) && unit.type !== type);
 var stillAlive = unit => unit.hp > 0;
@@ -45,7 +38,7 @@ var neightbors = (map, unit) => R.map(dir => map[unit.y + dir.y][unit.x + dir.x]
 var adjacentSpaces = (map, unit) => R.filter(isSpace, neightbors(map, unit));
 var keyOfSpace = space => `${space.x},${space.y}`;
 
-var shorestPathToReachable = (map, unit) => {
+var shortestPathToReachable = (map, unit) => {
     var queue = Queue.from(adjacentSpaces(map, unit).map(R.of));
     var seen = new Set();
     var foundPaths = [];
@@ -72,7 +65,7 @@ var shorestPathToReachable = (map, unit) => {
 
 var shouldMove = (map, units, unit) => anyEnemiesAlive(unit.type, units) && !anyEnemiesAlive(unit.type, neightbors(map, unit));
 var move = (map, unit) => {
-    var spaceToMoveTo = R.head(shorestPathToReachable(map, unit));
+    var spaceToMoveTo = R.head(shortestPathToReachable(map, unit));
     if (!spaceToMoveTo) return;
     clearSpace(map, unit);
     unit.x = spaceToMoveTo.x;
