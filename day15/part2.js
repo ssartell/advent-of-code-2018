@@ -44,7 +44,7 @@ var shortestPathToReachable = (map, unit) => {
     var foundPaths = [];
     while(queue.peek()) {
         var path = queue.dequeue();
-        if (foundPaths.length > 0 && path.length > foundPaths[0].path.length) break;
+        if (!R.isEmpty(foundPaths) && path.length > R.head(foundPaths).path.length) break;
         
         var lastSpace = R.last(path);
         var key = keyOfSpace(lastSpace);
