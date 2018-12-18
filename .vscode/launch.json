@@ -13,7 +13,9 @@
             "runtimeExecutable": null,
             "runtimeArgs": [
                 "--nolazy",
-                "--use-strict"
+                "--use-strict",
+                "--stack_size=1200",
+                
             ],
             "env": {
                 "NODE_ENV": "development"
