@@ -17,32 +17,34 @@ var isWetSand = x => x === '|';
 var isWater = x => x === '~';
 var step = (coords, dir) => ({x: coords.x + dir.x, y: coords.y + dir.y});
 var get = (map, coords) => map.get(key(coords)) || '.';
-var setWetSand = (map, coords) => { map.set(key(coords), '|'); };
-var setWater = (map, coords) => { map.set(key(coords), '~'); };
+var set = (map, coords, val) => { map.set(key(coords), val); };
+var setWetSand = (map, coords) => set(map, coords, '|');
+var setWater = (map, coords) => set(map, coords, '~');
+var setClay = (map, coords) => set(map, coords, '#');
 var down = {x:0, y:1};
 var left = {x:-1, y:0};
 var right = {x:1, y:0};
 var outOfBounds = (bounds, loc) => loc.y < bounds.minY || bounds.maxY < loc.y;
 
 var run = veins => {
-    var minX = min(R.map(vein => vein.x.min, veins));
-    var maxX = max(R.map(vein => vein.x.max, veins));
-    var minY = min(R.map(vein => vein.y.min, veins));
-    var maxY = max(R.map(vein => vein.y.max, veins));
-    var bounds = {minX, maxX, minY, maxY};
+    var bounds = {
+        minX: min(R.map(vein => vein.x.min, veins)), 
+        maxX: max(R.map(vein => vein.x.max, veins)), 
+        minY: min(R.map(vein => vein.y.min, veins)), 
+        maxY: max(R.map(vein => vein.y.max, veins))
+    };
 
     var map = new Map();
     for(var vein of veins) {
         for(var y = vein.y.min; y <= vein.y.max; y++) {
             for(var x = vein.x.min; x <= vein.x.max; x++) {
-                map.set(key({x, y}), '#');
+                setClay(map, {x, y});
             }
         }
     }
 
-    var start = {x: 500, y: bounds.minY};
-    flowDown(map, bounds, start);
-    print(map, bounds);
+    flowDown(map, bounds, {x: 500, y: bounds.minY});
+    //print(map, bounds);
     return R.pipe(Array.from, R.map(x => isWetSand(x) || isWater(x) ? 1 : 0), R.sum)(map.values());
 };
 
