@@ -44,7 +44,7 @@ var run = veins => {
     }
 
     flowDown(map, bounds, {x: 500, y: bounds.minY});
-    //print(map, bounds);
+    print(map, bounds);
     return R.pipe(Array.from, R.map(x => isWetSand(x) || isWater(x) ? 1 : 0), R.sum)(map.values());
 };
 
@@ -103,7 +103,7 @@ var fillWithWater = (map, bounds, loc) => {
 var print = (map, bounds) => {
     for(var y = bounds.minY; y <= bounds.maxY; y++) {
         var line = '';
-        for(var x = bounds.minX; x <= bounds.maxX; x++) {
+        for(var x = bounds.minX - 1; x <= bounds.maxX + 1; x++) {
             line += get(map, {x, y});
         }
         console.log(line);
