@@ -44,7 +44,7 @@ var run = map => {
     var width = map[0].length;
 
     var newMap = map;
-    var resourceValues = new Set();
+    var values = [];
     for(var i = 0; i < 1000000000; i++) {
         var oldMap = newMap;
         newMap = blankMap(width, height);
@@ -62,12 +62,16 @@ var run = map => {
                 set(newMap, coord, aLumberyardAndTree ? '#' : '.');
             }
         }
-        var value = getResourceValue(newMap);
-        if (resourceValues.has(value)) {
-            console.log(value + ' ' + i);
-        } else {
-            resourceValues.add(value);
+        values.push(getResourceValue(newMap));
+
+        if (i > 0 && i % 2 === 0) {
+            var tortoise = i / 2;
+            var hare = i;
+            if (values[tortoise] === values[hare]) {
+                return values[tortoise + ((1000000000 - tortoise - 1) % tortoise)];
+            }
         }
+        
     }
 
     return getResourceValue(newMap);
