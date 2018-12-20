@@ -14,7 +14,6 @@
             "runtimeArgs": [
                 "--nolazy",
                 "--use-strict",
-                "--stack_size=1200",
                 
             ],
             "env": {
