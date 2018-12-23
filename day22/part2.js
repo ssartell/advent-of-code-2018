@@ -1,5 +1,5 @@
 var R = require('ramda');
-var aStar = require('../a-star');
+var aStar = require('../pathfinding/a-star');
 
 var numRegex = /(\d+)/g;
 var parseInput = R.pipe(R.trim, R.match(numRegex), R.map(parseInt), R.zipObj(['depth', 'x', 'y']));
@@ -58,7 +58,7 @@ var run = input => {
     var result = aStar(start, isEnd, getNeighbors, getCost, getHeuristic, getKey);
 
     return result.t;
-}
+};
 
 var solution = R.pipe(parseInput, run);
 
