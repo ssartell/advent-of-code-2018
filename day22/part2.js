@@ -15,9 +15,6 @@ var getGeoIndex = (depth, target, coords) => {
 };
 var getErosionLevel = R.memoizeWith(getKey, (depth, target, coords) => (getGeoIndex(depth, target, coords) + depth) % 20183);
 var getType = R.memoizeWith(getKey, (depth, target, coords) => getErosionLevel(depth, target, coords) % 3);
-var isRocky = x => x === 0;
-var isWet = x => x === 1;
-var isNarrow = x => x === 2;
 
 // movement
 var dirs = [{x: 0, y: -1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}];
@@ -28,9 +25,9 @@ var manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 // tools
 var toolCombos = [{torch: true, gear: false}, {torch: true, gear: true}, {torch: false, gear: false}, {torch: false, gear: true}];
 var neither = tools => !tools.torch && !tools.gear;
-var isValidTools = (tools, type) => (isRocky(type) && (tools.torch || tools.gear) && !neither(tools)) 
-                                || (isWet(type) && (tools.gear || neither(tools)) && !tools.torch) 
-                                || (isNarrow(type) && (tools.torch || neither(tools)) && !tools.gear);
+var isValidTools = (tools, type) => (type === 0 && (tools.torch || tools.gear) && !neither(tools)) 
+                                || (type === 1 && (tools.gear || neither(tools)) && !tools.torch) 
+                                || (type === 2 && (tools.torch || neither(tools)) && !tools.gear);
 
 var run = input => {
     var depth = input.depth;
