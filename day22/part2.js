@@ -4,26 +4,7 @@ var Heap = require('mnemonist/heap');
 var numRegex = /(\d+)/g;
 var parseInput = R.pipe(R.trim, R.match(numRegex), R.map(parseInt), R.zipObj(['depth', 'x', 'y']));
 
-var isRocky = x => x === 0;
-var isWet = x => x === 1;
-var isNarrow = x => x === 2;
-
-var dirs = [{x: 0, y: -1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}];
-var step = (pos, dir) => ({x: pos.x + dir.x, y: pos.y + dir.y});
-var isInBounds = pos => 0 <= pos.x && 0 <= pos.y
-var manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-
-var toolCombos = [
-    {torch: true, gear: false},
-    {torch: true, gear: true},
-    {torch: false, gear: false},
-    {torch: false, gear: true}
-];
-var neither = tools => !tools.torch && !tools.gear;
-var isValidTools = (tools, type) => (isRocky(type) && (tools.torch || tools.gear) && !neither(tools)) 
-                                || (isWet(type) && (tools.gear || neither(tools)) && !tools.torch) 
-                                || (isNarrow(type) && (tools.torch || neither(tools)) && !tools.gear);
-
+// terrain
 var getKey = (depth, target, coords) => `${coords.x},${coords.y}`;
 var getGeoIndex = (depth, target, coords) => {
     if (coords.x === 0 && coords.y === 0) return 0;
@@ -34,6 +15,22 @@ var getGeoIndex = (depth, target, coords) => {
 };
 var getErosionLevel = R.memoizeWith(getKey, (depth, target, coords) => (getGeoIndex(depth, target, coords) + depth) % 20183);
 var getType = R.memoizeWith(getKey, (depth, target, coords) => getErosionLevel(depth, target, coords) % 3);
+var isRocky = x => x === 0;
+var isWet = x => x === 1;
+var isNarrow = x => x === 2;
+
+// movement
+var dirs = [{x: 0, y: -1}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}];
+var step = (pos, dir) => ({x: pos.x + dir.x, y: pos.y + dir.y});
+var isInBounds = pos => 0 <= pos.x && 0 <= pos.y
+var manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+
+// tools
+var toolCombos = [{torch: true, gear: false}, {torch: true, gear: true}, {torch: false, gear: false}, {torch: false, gear: true}];
+var neither = tools => !tools.torch && !tools.gear;
+var isValidTools = (tools, type) => (isRocky(type) && (tools.torch || tools.gear) && !neither(tools)) 
+                                || (isWet(type) && (tools.gear || neither(tools)) && !tools.torch) 
+                                || (isNarrow(type) && (tools.torch || neither(tools)) && !tools.gear);
 
 var aStar = (start, isEnd, getNeighbors, g, h, getKey) => {
     var heap = new Heap(R.comparator((a, b) => g(a) + h(a) <= g(b) + h(b)));
