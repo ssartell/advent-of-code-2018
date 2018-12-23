@@ -45,7 +45,6 @@ var aStar = (start, isEnd, getNeighbors, g, h, getKey) => {
         if (seen.has(key)) continue;
         seen.add(key);
         if (isEnd(current)) return current;
-
         for(var neighbor of getNeighbors(current)) {
             heap.push(neighbor);
         }
@@ -58,24 +57,20 @@ var run = input => {
 
     var start = {pos: {x: 0, y: 0}, t: 0, tools: {torch: true, gear: false}};
     var isEnd = i => i.pos.x === target.x && i.pos.y === target.y && i.tools.torch;
-    var getNeighbors = i => {
-        var neighbors = [];
-        var type = getType(depth, target, i.pos);
-
+    var getNeighbors = function* (i) {
         for(var dir of dirs) {
             var nextPos = step(i.pos, dir);
             if (!isInBounds(nextPos)) continue;
             var nextType = getType(depth, target, nextPos);
             if (!isValidTools(i.tools, nextType)) continue;
-            neighbors.push({pos: nextPos, t: i.t + 1, tools: i.tools, type: nextType, last: i});
+            yield {pos: nextPos, t: i.t + 1, tools: i.tools, type: nextType, last: i};
         }
 
+        var type = getType(depth, target, i.pos);
         for(var tools of toolCombos) {
             if (!isValidTools(tools, type)) continue;
-            neighbors.push({pos: i.pos, t: i.t + 7, tools: tools, type: type, last: i});
+            yield {pos: i.pos, t: i.t + 7, tools: tools, type: type, last: i};
         }
-
-        return neighbors;
     };
     var getCost = i => i.t;
     var getHeuristic = i => manhattan(i.pos, target);
