@@ -38,8 +38,7 @@ var run = input => {
         } else if (char === ')') {
             loc = stack.pop(loc);
         } else if (char === '|') {
-            loc = stack.pop(loc);
-            stack.push(loc);
+            loc = stack.peek(loc);
         }
     }
 
