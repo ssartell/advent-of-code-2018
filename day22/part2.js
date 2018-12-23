@@ -1,5 +1,5 @@
 var R = require('ramda');
-var Heap = require('mnemonist/heap');
+var aStar = require('../a-star');
 
 var numRegex = /(\d+)/g;
 var parseInput = R.pipe(R.trim, R.match(numRegex), R.map(parseInt), R.zipObj(['depth', 'x', 'y']));
@@ -31,22 +31,6 @@ var neither = tools => !tools.torch && !tools.gear;
 var isValidTools = (tools, type) => (isRocky(type) && (tools.torch || tools.gear) && !neither(tools)) 
                                 || (isWet(type) && (tools.gear || neither(tools)) && !tools.torch) 
                                 || (isNarrow(type) && (tools.torch || neither(tools)) && !tools.gear);
-
-var aStar = (start, isEnd, getNeighbors, g, h, getKey) => {
-    var heap = new Heap(R.comparator((a, b) => g(a) + h(a) <= g(b) + h(b)));
-    heap.push(start);
-    var seen = new Set();
-    while(heap.peek()) {
-        var current = heap.pop();
-        var key = getKey(current);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        if (isEnd(current)) return current;
-        for(var neighbor of getNeighbors(current)) {
-            heap.push(neighbor);
-        }
-    }
-};
 
 var run = input => {
     var depth = input.depth;
