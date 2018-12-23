@@ -8,6 +8,7 @@ var parseInput = R.pipe(R.trim, R.match(numRegex), R.map(parseInt), R.zipObj(['d
 var terrains = { rocky: 0, wet: 1, narrow: 2 };
 var getTerrainKey = (depth, target, coords) => `${coords.x},${coords.y}`;
 var getGeoIndex = (depth, target, coords) => {
+    if (coords.x < 0 || coords.y < 0) return -1;
     if (coords.x === 0 && coords.y === 0) return 0;
     if (coords.x === target.x && coords.y === target.y) return 0;
     if (coords.y === 0) return coords.x * 16807;
@@ -28,27 +29,26 @@ var tools = { neither: 0, torch: 1, gear: 2 };
 var isValidTools = (tool, terrain) => (terrain === terrains.rocky && (tool === tools.torch || tool === tools.gear)) 
                                 || (terrain === terrains.wet && (tool === tools.neither || tool === tools.gear))
                                 || (terrain === terrains.narrow && (tool === tools.neither || tool === tools.torch));
+var getOtherTools = tool => R.without([tool], R.values(tools))
 
 var run = input => {
     var depth = input.depth;
     var target = {x: input.x, y: input.y};
 
-    var start = {pos: {x: 0, y: 0}, t: 0, tool: tools.torch };
+    var start = {pos: {x: 0, y: 0}, t: 0, tool: tools.torch, terrain: getTerrain(depth, target, {x: 0, y: 0}) };
     var isEnd = i => i.pos.x === target.x && i.pos.y === target.y && i.tool === tools.torch;
     var getNeighbors = function* (i) {
         for(var dir of dirs) {
             var nextPos = step(i.pos, dir);
-            if (!isInBounds(nextPos)) continue;
-            var nextTerrain = getTerrain(depth, target, nextPos);
-            if (!isValidTools(i.tool, nextTerrain)) continue;
-            yield {pos: nextPos, t: i.t + 1, tool: i.tool, terrain: nextTerrain, last: i};
+            var neighbor = {pos: nextPos, t: i.t + 1, tool: i.tool, terrain: getTerrain(depth, target, nextPos), last: i}
+            if (isInBounds(neighbor.pos) && isValidTools(neighbor.tool, neighbor.terrain)) 
+                yield neighbor;
         }
 
-        var terrain = getTerrain(depth, target, i.pos);
-        for(var tool of R.values(tools)) {
-            if (tool === i.tool) continue;
-            if (!isValidTools(tool, terrain)) continue;
-            yield {pos: i.pos, t: i.t + 7, tool: tool, terrain: terrain, last: i};
+        for(var tool of getOtherTools(i.tool)) {
+            var neighbor = {pos: i.pos, t: i.t + 7, tool: tool, terrain: i.terrain, last: i};
+            if (isValidTools(tool, i.terrain)) 
+                yield neighbor;
         }
     };
     var getCost = i => i.t;
