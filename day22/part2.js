@@ -5,6 +5,7 @@ var numRegex = /(\d+)/g;
 var parseInput = R.pipe(R.trim, R.match(numRegex), R.map(parseInt), R.zipObj(['depth', 'x', 'y']));
 
 // terrain
+var terrains = { rocky: 0, wet: 1, narrow: 2 };
 var getKey = (depth, target, coords) => `${coords.x},${coords.y}`;
 var getGeoIndex = (depth, target, coords) => {
     if (coords.x === 0 && coords.y === 0) return 0;
@@ -23,36 +24,36 @@ var isInBounds = pos => 0 <= pos.x && 0 <= pos.y
 var manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
 // tools
-var toolCombos = [{torch: true, gear: false}, {torch: true, gear: true}, {torch: false, gear: false}, {torch: false, gear: true}];
-var neither = tools => !tools.torch && !tools.gear;
-var isValidTools = (tools, type) => (type === 0 && (tools.torch || tools.gear) && !neither(tools)) 
-                                || (type === 1 && (tools.gear || neither(tools)) && !tools.torch) 
-                                || (type === 2 && (tools.torch || neither(tools)) && !tools.gear);
+var tools = { neither: 0, torch: 1, gear: 2 };
+var isValidTools = (tool, type) => (type === terrains.rocky && (tool === tools.torch || tool === tools.gear)) 
+                                || (type === terrains.wet && (tool === tools.neither || tool === tools.gear))
+                                || (type === terrains.narrow && (tool === tools.neither || tool === tools.torch));
 
 var run = input => {
     var depth = input.depth;
     var target = {x: input.x, y: input.y};
 
-    var start = {pos: {x: 0, y: 0}, t: 0, tools: {torch: true, gear: false}};
-    var isEnd = i => i.pos.x === target.x && i.pos.y === target.y && i.tools.torch;
+    var start = {pos: {x: 0, y: 0}, t: 0, tool: tools.torch };
+    var isEnd = i => i.pos.x === target.x && i.pos.y === target.y && i.tool === tools.torch;
     var getNeighbors = function* (i) {
         for(var dir of dirs) {
             var nextPos = step(i.pos, dir);
             if (!isInBounds(nextPos)) continue;
             var nextType = getType(depth, target, nextPos);
-            if (!isValidTools(i.tools, nextType)) continue;
-            yield {pos: nextPos, t: i.t + 1, tools: i.tools, type: nextType, last: i};
+            if (!isValidTools(i.tool, nextType)) continue;
+            yield {pos: nextPos, t: i.t + 1, tool: i.tool, type: nextType, last: i};
         }
 
         var type = getType(depth, target, i.pos);
-        for(var tools of toolCombos) {
-            if (!isValidTools(tools, type)) continue;
-            yield {pos: i.pos, t: i.t + 7, tools: tools, type: type, last: i};
+        for(var tool of R.values(tools)) {
+            if (tool === i.tool) continue;
+            if (!isValidTools(tool, type)) continue;
+            yield {pos: i.pos, t: i.t + 7, tool: tool, type: type, last: i};
         }
     };
     var getCost = i => i.t;
     var getHeuristic = i => manhattan(i.pos, target);
-    var getKey = i => `${i.pos.x},${i.pos.y},${i.tools.torch},${i.tools.gear}`;
+    var getKey = i => `${i.pos.x},${i.pos.y},${i.tool}`;
 
     var result = aStar(start, isEnd, getNeighbors, getCost, getHeuristic, getKey);
 
