@@ -82,7 +82,7 @@ var run = bots => {
     var p = origin;
     var descending = true;
     var minDist = combinedSdf(p);
-    var factor = 16777216;
+    var factor = Math.pow(2, 24); // just pick a big number that's divisble by 2
 
     while(descending) {
         var foundLower = false;
@@ -90,14 +90,14 @@ var run = bots => {
             var dist = combinedSdf(neighbor);
             if (dist < minDist) {
                 minDist = dist;
-                p = neighbor;
+                p = neighbor;   // walk downhill
                 foundLower = true;
                 break;
             }
         }
-        
+
         if (!foundLower) {
-            factor = factor / 2;
+            factor = factor / 2; // slow down
             if (factor < 1) 
                 descending = false
         }
