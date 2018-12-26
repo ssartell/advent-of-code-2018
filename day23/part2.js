@@ -1,8 +1,5 @@
 var R = require('ramda');
-var C = require('js-combinatorics');
-var binarySearch = require('../pathfinding/binarySearch');
-var helpers = require('mnemonist/set');
-var debug = x => { debugger; return x; };
+var maxClique = require('../graph/bron-kerbosch');
 
 var lineRegex = /pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(-?\d+)/;
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.map(parseInt), R.zipObj(['x', 'y', 'z', 'range']));
@@ -46,30 +43,11 @@ var getIntersections = bots => {
     return ints;
 };
 
-var bronKerbosch = (n, R, P, X) => {
-    if (P.size === 0 && X.size === 0) {
-        return R;
-    }
-    var maxClique = new Set();
-    var u = helpers.union(P, X).values().next().value;
-    for(var p of helpers.difference(P, n.get(u))) {
-        var setOfp = new Set([p]);
-        var clique = bronKerbosch(n, helpers.union(R, setOfp), helpers.intersection(P, n.get(p)), helpers.intersection(X, n.get(p)));
-        if (clique.size > maxClique.size) {
-            maxClique = clique;
-        }
-        helpers.subtract(P, setOfp);
-        X = helpers.union(X, setOfp);
-    }
-
-    return maxClique;
-};
-
 var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
 
 var run = bots => {
     var ints = getIntersections(bots);
-    var clique = bronKerbosch(ints, new Set(), new Set(bots), new Set());
+    var clique = maxClique(ints, new Set(bots));
 
     var combinedSdf = p => 0;
     for(var bot of clique) {
