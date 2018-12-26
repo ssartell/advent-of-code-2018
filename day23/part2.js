@@ -1,5 +1,6 @@
 var R = require('ramda');
-var maxClique = require('../graph/bron-kerbosch');
+var edgeMap = require('../graphs/edge-map');
+var maxClique = require('../graphs/bron-kerbosch');
 
 var lineRegex = /pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(-?\d+)/;
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.map(parseInt), R.zipObj(['x', 'y', 'z', 'range']));
@@ -20,33 +21,11 @@ var getNeighbors = function* (p, factor) {
     }
 };
 var botsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
-var addIntersection = (intersections, a, b) => {
-    var set = intersections.get(a);
-    if (!set) {
-        set = new Set();
-        intersections.set(a, set);
-    }
-    set.add(b);
-};
-var getIntersections = bots => {
-    var ints = new Map();
-    for(var i = 0; i < bots.length; i++) {
-        var a = bots[i];
-        for(var j = i + 1; j < bots.length; j++) {
-            var b = bots[j];
-            if (botsIntersect(a, b)) {
-                addIntersection(ints, a, b);
-                addIntersection(ints, b, a);
-            }
-        }
-    }
-    return ints;
-};
 
 var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
 
 var run = bots => {
-    var ints = getIntersections(bots);
+    var ints = edgeMap(bots, botsIntersect);
     var clique = maxClique(ints, new Set(bots));
 
     var combinedSdf = p => 0;
