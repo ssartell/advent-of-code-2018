@@ -1,85 +1,109 @@
 var R = require('ramda');
 var C = require('js-combinatorics');
 var binarySearch = require('../pathfinding/binarySearch');
+var helpers = require('mnemonist/set');
 var debug = x => { debugger; return x; };
 
 var lineRegex = /pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(-?\d+)/;
 var parseLine = R.pipe(R.match(lineRegex), R.tail, R.map(parseInt), R.zipObj(['x', 'y', 'z', 'range']));
 var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
 
-// var boundingBoxVerts = i => [
-//     {x: i.x - i.range, y: i.y - i.range, z: i.x - i.range},
-//     {x: i.x + i.range, y: i.y + i.range, z: i.x + i.range}
-// ];
-// var rangesOverlap = ([min1, max1], [min2, max2]) => {
-//     if (min1.x > max2.x || min2.x > max1.x) return false;
-//     if (min1.y > max2.y || min2.y > max1.y) return false;
-//     if (min1.z > max2.z || min2.z > max1.z) return false;
-//     return true;
-// };
-// var intersection = ([min1, max1], [min2, max2]) => [
-//     {x: R.min(min1.x, min2.x), y: R.min(min1.y, min2.y), z: R.min(min1.z, min2.z)},
-//     {x: R.max(max1.x, max2.x), y: R.max(max1.y, max2.y), z: R.max(max1.z, max2.z)},
-// ];
-var getKey = i => `${i.x},${i.y},${i.z}`;
 var manhattan = R.curry((a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z));
 var origin = {x: 0, y: 0, z: 0};
-var inRangeOfBot = (bot, i) => manhattan(bot, i) <= bot.range;
-var vertsOfBotRange = bot => [
-    {x: bot.x - bot.range, y: bot.y, z: bot.z},
-    {x: bot.x + bot.range, y: bot.y, z: bot.z},
-    {x: bot.x, y: bot.y - bot.range, z: bot.z},
-    {x: bot.x, y: bot.y + bot.range, z: bot.z},
-    {x: bot.x, y: bot.y, z: bot.z - bot.range},
-    {x: bot.x, y: bot.y, z: bot.z + bot.range}
-];
-var allVerts = function* (bots) {
-    for(var bot of bots) {
-        for(var vert of vertsOfBotRange(bot)) {
-            yield vert;
+
+var add = (a, b) => ({x: a.x + b.x, y: a.y + b.y, z: a.z + b.z});
+var getNeighbors = function* (p, factor) {
+    for(var z = -1; z <= 1; z++) {
+        for(var y = -1; y <= 1; y++) {
+            for(var x = -1; x <= 1; x++) {
+                if (z === 0 && y === 0 && x === 0) continue;
+                yield add(p, {x: x * factor, y: y * factor, z: z * factor});
+            }
+        }    
+    }
+};
+var botsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
+var addIntersection = (intersections, a, b) => {
+    var set = intersections.get(a);
+    if (!set) {
+        set = new Set();
+        intersections.set(a, set);
+    }
+    set.add(b);
+};
+var getIntersections = bots => {
+    var ints = new Map();
+    for(var i = 0; i < bots.length; i++) {
+        var a = bots[i];
+        for(var j = i + 1; j < bots.length; j++) {
+            var b = bots[j];
+            if (botsIntersect(a, b)) {
+                addIntersection(ints, a, b);
+                addIntersection(ints, b, a);
+            }
         }
     }
+    return ints;
 };
-var midpoint = (a, b) => ({x: Math.floor((a.x + b.x) / 2), y: Math.floor((a.y + b.y) / 2), z: Math.floor((a.z + b.z) / 2)});
 
-var min = R.reduce(R.min, Infinity);
-
-var countBotsInRange = (bots, p) => {
-    var botsInRange = 0;
-    for(var bot of bots) {
-        if (inRangeOfBot(bot, p)) 
-            botsInRange++;
+var bronKerbosch = (n, R, P, X) => {
+    if (P.size === 0 && X.size === 0) {
+        return R;
     }
-    return botsInRange;
+    var maxClique = new Set();
+    var u = helpers.union(P, X).values().next().value;
+    for(var p of helpers.difference(P, n.get(u))) {
+        var setOfp = new Set([p]);
+        var clique = bronKerbosch(n, helpers.union(R, setOfp), helpers.intersection(P, n.get(p)), helpers.intersection(X, n.get(p)));
+        if (clique.size > maxClique.size) {
+            maxClique = clique;
+        }
+        helpers.subtract(P, setOfp);
+        X = helpers.union(X, setOfp);
+    }
+
+    return maxClique;
 };
+
+var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
 
 var run = bots => {
-    var mostBotsInRange = 0;
-    var bestVerts = [];
+    var ints = getIntersections(bots);
+    var clique = bronKerbosch(ints, new Set(), new Set(bots), new Set());
 
-    for(var vert of allVerts(bots)) {
-        var botsInRange = countBotsInRange(bots, vert);
-        if (botsInRange === mostBotsInRange) {
-            bestVerts.push(vert);
+    var combinedSdf = p => 0;
+    for(var bot of clique) {
+        let thisBotSdf = botSdf(bot);
+        let prevSdf = combinedSdf;
+        combinedSdf = p => R.max(prevSdf(p), thisBotSdf(p));
+    }
+    combinedSdf = R.memoizeWith(p => `${p.x},${p.y},${p.z}`, combinedSdf);
+
+    var p = origin;
+    var descending = true;
+    var minDist = combinedSdf(p);
+    var factor = 16777216;
+
+    while(descending) {
+        var foundLower = false;
+        for(var neighbor of getNeighbors(p, factor)) {
+            var dist = combinedSdf(neighbor);
+            if (dist < minDist) {
+                minDist = dist;
+                p = neighbor;
+                foundLower = true;
+                break;
+            }
         }
-        if (botsInRange > mostBotsInRange) {
-            bestVerts = [vert];
-            mostBotsInRange = botsInRange;
+        
+        if (!foundLower) {
+            factor = factor / 2;
+            if (factor < 1) 
+                descending = false
         }
     }
 
-    var minDist = Infinity;
-    for(var vert of bestVerts) {
-        var result = binarySearch(origin, vert, midpoint, p => {
-            var botsInRange = countBotsInRange(bots, p);
-            if (botsInRange > mostBotsInRange) 
-                mostBotsInRange = botsInRange;
-            return botsInRange >= mostBotsInRange;
-        }, (a, b) => manhattan(a, b) <= 3);
-        minDist = R.min(minDist, manhattan(origin, result));
-    }
-
-    return minDist;
+    return manhattan(origin, p);
 };
 
 var solution = R.pipe(parseInput, run);

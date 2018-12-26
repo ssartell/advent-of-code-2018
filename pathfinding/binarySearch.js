@@ -1,13 +1,18 @@
 var R = require('ramda');
 
-module.exports = (left, right, getMidpoint, isRight, isEqual) => {
-    while (!isEqual(left, right)) {
+module.exports = (left, right, getMidpoint, comparatorToTarget, timeout = Infinity) => {
+    var i = 0;
+    while (i < timeout) {
         var middle = getMidpoint(left, right);
-        if (isRight(middle)) {
-            right = middle;
-        } else {
+        var comparison = comparatorToTarget(middle);
+        if (comparison < 0) {
+            right = middle; 
+        } else if (comparison === 0) {
+            return middle;
+        } else if (comparison > 0) {
             left = middle;
         }
+        i++;
     }
-    return right;
+    return null;
 };
