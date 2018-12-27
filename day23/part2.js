@@ -42,8 +42,6 @@ var run = bots => {
         var dist2 = combinedSdf(add(p, scale(dir, dist)));
         p = add(p, scale(dir, dist - Math.floor(dist2 / 2)));
     }
-    
-    var dist2 = combinedSdf(add(p, scale(dir, dist)));
 
     return manhattan(origin, p);
 };
