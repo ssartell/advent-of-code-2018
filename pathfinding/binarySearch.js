@@ -14,5 +14,5 @@ module.exports = (left, right, getMidpoint, comparatorToTarget, timeout = Infini
         }
         i++;
     }
-    return null;
+    return middle;
 };
