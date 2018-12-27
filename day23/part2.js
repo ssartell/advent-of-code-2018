@@ -10,16 +10,15 @@ var manhattan = R.curry((a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Ma
 var origin = {x: 0, y: 0, z: 0};
 
 var add = (a, b) => ({x: a.x + b.x, y: a.y + b.y, z: a.z + b.z});
-var getNeighbors = function* (p, factor) {
-    for(var z = -1; z <= 1; z++) {
-        for(var y = -1; y <= 1; y++) {
-            for(var x = -1; x <= 1; x++) {
-                if (z === 0 && y === 0 && x === 0) continue;
-                yield add(p, {x: x * factor, y: y * factor, z: z * factor});
-            }
-        }    
-    }
-};
+var scale = (a, s) => ({x: a.x * s, y: a.y * s, z: a.z * s});
+var dirs = [
+    {x: -1, y: 0, z: 0},
+    {x: 1, y: 0, z: 0},
+    {x: 0, y: -1, z: 0},
+    {x: 0, y: 1, z: 0},
+    {x: 0, y: 0, z: -1},
+    {x: 0, y: 0, z: 1},
+];
 var botsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
 
 var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
@@ -37,28 +36,14 @@ var run = bots => {
     combinedSdf = R.memoizeWith(p => `${p.x},${p.y},${p.z}`, combinedSdf);
 
     var p = origin;
-    var descending = true;
-    var minDist = combinedSdf(p);
-    var factor = Math.pow(2, 24); // just pick a big number that's divisble by 2
-
-    while(descending) {
-        var foundLower = false;
-        for(var neighbor of getNeighbors(p, factor)) {
-            var dist = combinedSdf(neighbor);
-            if (dist < minDist) {
-                minDist = dist;
-                p = neighbor;   // walk downhill
-                foundLower = true;
-                break;
-            }
-        }
-
-        if (!foundLower) {
-            factor = factor / 2; // slow down
-            if (factor < 1) 
-                descending = false
-        }
+    for(var dir of dirs) {
+        var dist = combinedSdf(p);
+        if (combinedSdf(add(p, dir)) >= dist) continue;
+        var dist2 = combinedSdf(add(p, scale(dir, dist)));
+        p = add(p, scale(dir, dist - Math.floor(dist2 / 2)));
     }
+    
+    var dist2 = combinedSdf(add(p, scale(dir, dist)));
 
     return manhattan(origin, p);
 };
