@@ -20,12 +20,11 @@ var dirs = [
     {x: 0, y: 0, z: 1},
 ];
 var botsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
-
 var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
 
 var run = bots => {
-    var ints = edgeMap(bots, botsIntersect);
-    var clique = maxClique(ints, new Set(bots));
+    var intersections = edgeMap(bots, botsIntersect);
+    var clique = maxClique(intersections, new Set(bots));
 
     var combinedSdf = p => 0;
     for(var bot of clique) {
@@ -33,16 +32,15 @@ var run = bots => {
         let prevSdf = combinedSdf;
         combinedSdf = p => R.max(prevSdf(p), thisBotSdf(p));
     }
-    combinedSdf = R.memoizeWith(p => `${p.x},${p.y},${p.z}`, combinedSdf);
 
     var p = origin;
     for(var dir of dirs) {
         var dist = combinedSdf(p);
         if (combinedSdf(add(p, dir)) >= dist) continue;
         var dist2 = combinedSdf(add(p, scale(dir, dist)));
-        p = add(p, scale(dir, dist - Math.floor(dist2 / 2)));
+        p = add(p, scale(dir, dist - dist2 / 2));
     }
-
+    
     return manhattan(origin, p);
 };
 
