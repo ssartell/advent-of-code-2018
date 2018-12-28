@@ -11,6 +11,7 @@ var getIntersections = (nodes, areConnected) => {
     var connections = new Map();
     for(var i = 0; i < nodes.length; i++) {
         var a = nodes[i];
+        connections.set(a, new Set());
         for(var j = i + 1; j < nodes.length; j++) {
             var b = nodes[j];
             if (areConnected(a, b)) {
