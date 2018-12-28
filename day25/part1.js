@@ -1,7 +1,6 @@
 var R = require('ramda');
 var edgeMap = require('../graphs/graph-edges-map');
 var bfs = require('../pathfinding/bfs');
-var debug = x => { debugger; return x; };
 
 var parseLine = R.pipe(R.split(','), R.map(parseInt));
 var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
