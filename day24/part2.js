@@ -93,13 +93,12 @@ var doesImmuneSystemWin = (boost, input) => {
 };
 
 var run = input => {
-    var i = 20;
+    var i = 0;
     while(true) {
         var result = doesImmuneSystemWin(i, input);
-        if (result.isSuccess) return result;
+        if (result.isSuccess) return result.units;
         i++;
     }
-    // return binarySearch(0, 9999, (a, b) => Math.floor((a + b) / 2), x => doesImmuneSystemWin(x, input), 20);
 };
 
 var solution = R.pipe(run);
