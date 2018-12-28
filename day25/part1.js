@@ -12,20 +12,6 @@ var manhattan = R.pipe(R.zip, R.map(x => Math.abs(x[0] - x[1])), R.sum);
 var matchingConstellation = (constellations, star) => R.filter(R.any(x => manhattan(x, star) <= 3), constellations);
 
 var run = stars => {
-    // var edges = edgeMap(stars, (a, b) => manhattan(a, b) <= 3);
-
-    // var visited = new Set();
-    // var unvisited = new Set(stars);
-    // var constellations = 0;
-
-    // while(unvisited.size > 0) {
-    //     constellations++;
-    //     var star = first(unvisited);
-    //     bfs(star, x => { visited.add(x); unvisited.delete(x); return false; }, x => edges.get(x), x => x.join(','));
-    // }
-
-    // return constellations;
-
     var constellations = [];
     for(var star of stars) {
         var matches = matchingConstellation(constellations, star);
