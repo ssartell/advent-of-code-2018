@@ -6,7 +6,7 @@ var parseLine = R.pipe(R.split(','), R.map(parseInt));
 var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
 
 var first = set => set.values().next().value;
-var manhattan = R.pipe(R.zip, R.map(x => Math.abs(x[0] - x[1])), R.sum);
+var manhattan = R.pipe(R.zip, R.map(R.pipe(R.apply(R.subtract), Math.abs)), R.sum);
 
 var run = stars => {
     var edges = edgeMap(stars, (a, b) => manhattan(a, b) <= 3);
