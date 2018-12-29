@@ -1,5 +1,5 @@
 var R = require('ramda');
-var graphEdgesMap = require('../graphs/graph-edges-map');
+var graphEdgesMap = require('../graphs/edges-map');
 var maxClique = require('../graphs/bron-kerbosch');
 
 var lineRegex = /pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(-?\d+)/;

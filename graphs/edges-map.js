@@ -1,4 +1,4 @@
-var graphEdgesMap = (nodes, hasEdge) => {
+var edgesMap = (nodes, hasEdge) => {
     var edges = new Map();
     for(var node of nodes) {
         edges.set(node, new Set());
@@ -18,4 +18,4 @@ var graphEdgesMap = (nodes, hasEdge) => {
     return edges;
 };
 
-module.exports = graphEdgesMap;
+module.exports = edgesMap;
