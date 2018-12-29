@@ -1,7 +1,7 @@
 var R = require('ramda');
 var Stack = require('mnemonist/stack');
 
-module.exports = (start, isEnd, getNeighbors, getKey) => {
+module.exports = (start, isEnd, getNeighbors, getKey = x => x) => {
     var notVisited = new Stack();
     notVisited.push(start);
     var seen = new Set();

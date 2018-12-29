@@ -1,7 +1,7 @@
 var R = require('ramda');
 var Heap = require('mnemonist/heap');
 
-module.exports = (start, isEnd, getNeighbors, getCost, getKey) => {
+module.exports = (start, isEnd, getNeighbors, getCost, getKey = x => x) => {
     var notVisited = new Heap(R.comparator((a, b) => getCost(a) <= getCost(b)));
     notVisited.push(start);
     var seen = new Set();

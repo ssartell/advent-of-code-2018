@@ -19,4 +19,4 @@ var bronKerbosch = (n, R, P, X) => {
     return maxClique;
 };
 
-module.exports = (mapOfNeighboringSets, fullSet) => bronKerbosch(mapOfNeighboringSets, new Set(), fullSet, new Set());
+module.exports = (edgesMap, fullSet) => bronKerbosch(edgesMap, new Set(), fullSet, new Set());
