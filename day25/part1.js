@@ -7,12 +7,8 @@ var parseInput = R.pipe(R.trim, R.split('\n'), R.map(parseLine));
 var manhattan = R.pipe(R.zip, R.map(R.pipe(R.apply(R.subtract), Math.abs)), R.sum);
 var areInConstellation = (a, b) => manhattan(a, b) <= 3;
 
-var run = stars => {
-    var constellations = connectedComponents(stars, areInConstellation);
+var constellationsCount = stars => connectedComponents(stars, areInConstellation).length;
 
-    return constellations.length;
-};
-
-var solution = R.pipe(parseInput, run);
+var solution = R.pipe(parseInput, constellationsCount);
 
 module.exports = solution;
