@@ -1,5 +1,5 @@
 var R = require('ramda');
-var graphEdgesMap = require('../graphs/edges-map');
+var edgesMap = require('../graphs/edges-map');
 var maxClique = require('../graphs/bron-kerbosch');
 
 var lineRegex = /pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(-?\d+)/;
@@ -12,11 +12,11 @@ var origin = {x: 0, y: 0, z: 0};
 var add = (a, b) => ({x: a.x + b.x, y: a.y + b.y, z: a.z + b.z});
 var scale = (a, s) => ({x: a.x * s, y: a.y * s, z: a.z * s});
 var dirs = [{x: 1, y: 0, z: 0}, {x: 0, y: 1, z: 0}, {x: 0, y: 0, z: 1}];
-var botsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
+var doBotsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
 var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
 
 var run = bots => {
-    var intersections = graphEdgesMap(bots, botsIntersect);
+    var intersections = edgesMap(bots, doBotsIntersect);
     var clique = maxClique(intersections, new Set(bots));
 
     var combinedSdf = p => 0;
