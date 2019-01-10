@@ -1,6 +1,6 @@
 var R = require('ramda');
 var edgesMap = require('../graphs/edges-map');
-var bfs = require('../pathfinding/bfs');
+var bfs = require('../graph-traversal/bfs');
 
 var connectedComponents = (nodes, hasEdge) => {
     var edges = edgesMap(nodes, hasEdge);

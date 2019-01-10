@@ -1,6 +1,4 @@
 var R = require('ramda');
-var binarySearch = require('../pathfinding/binarySearch');
-var debug = x => { debugger; return x; };
 
 var lineRegex = /(\d+) units each with (\d+) hit points(?: \((?:(\w+) to ([\w\s,]+))(?:; )?(?:(\w+) to ([\w\s,]+))?\))? with an attack that does (\d+) (\w+) damage at initiative (\d+)/;
 var toGroup = x => {

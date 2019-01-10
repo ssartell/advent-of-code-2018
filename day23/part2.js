@@ -11,14 +11,7 @@ var origin = {x: 0, y: 0, z: 0};
 
 var add = (a, b) => ({x: a.x + b.x, y: a.y + b.y, z: a.z + b.z});
 var scale = (a, s) => ({x: a.x * s, y: a.y * s, z: a.z * s});
-var dirs = [
-    {x: -1, y: 0, z: 0},
-    {x: 1, y: 0, z: 0},
-    {x: 0, y: -1, z: 0},
-    {x: 0, y: 1, z: 0},
-    {x: 0, y: 0, z: -1},
-    {x: 0, y: 0, z: 1},
-];
+var dirs = [{x: 1, y: 0, z: 0}, {x: 0, y: 1, z: 0}, {x: 0, y: 0, z: 1}];
 var botsIntersect = (a, b) => manhattan(a, b) <= a.range + b.range;
 var botSdf = R.curry((bot, p) => manhattan(bot, p) - bot.range);
 
@@ -36,8 +29,8 @@ var run = bots => {
     var p = origin;
     for(var dir of dirs) {
         var dist = combinedSdf(p);
-        if (combinedSdf(add(p, dir)) >= dist) continue;
-        var dist2 = combinedSdf(add(p, scale(dir, dist)));
+        var factor = dist - combinedSdf(add(p, dir));
+        var dist2 = combinedSdf(add(p, scale(dir, dist * factor)));
         p = add(p, scale(dir, dist - dist2 / 2));
     }
     

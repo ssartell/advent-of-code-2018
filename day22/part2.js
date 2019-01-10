@@ -1,5 +1,5 @@
 var R = require('ramda');
-var aStar = require('../pathfinding/a-star');
+var aStar = require('../graph-traversal/a-star');
 
 var numRegex = /(\d+)/g;
 var parseInput = R.pipe(R.trim, R.match(numRegex), R.map(parseInt), R.zipObj(['depth', 'x', 'y']));
